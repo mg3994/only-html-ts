@@ -458,6 +458,32 @@
       font-size: 0.95rem;
     }
 
+    /* Smooth loading overlay transition styles */
+    #loader-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: system-ui, -apple-system, sans-serif;
+      color: #4a5568;
+      background-color: #f7fafc;
+      z-index: 999999;
+      transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      opacity: 1;
+      visibility: visible;
+    }
+
+    #loader-overlay.fade-out {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
     /* Embedded CSS 3D Origami Folding Styles (exactly from original logo) */
     #antinna-logo {
       perspective: 1200px;
@@ -571,7 +597,7 @@
 </head>
 <body>
   <!-- Dynamic full-screen 3D animated Origami loading portal -->
-  <div id="loader-overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: system-ui, -apple-system, sans-serif; color: #4a5568; background-color: #f7fafc; z-index: 999999;">
+  <div id="loader-overlay">
     <div style="width: 200px; height: 200px; margin-bottom: 24px;">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%" id="antinna-logo">
         <defs>

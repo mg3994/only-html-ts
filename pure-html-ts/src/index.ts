@@ -108,15 +108,15 @@ function render() {
   if (manager.loading) {
     document.body.style.overflow = "hidden";
     document.body.style.backgroundColor = "#f7fafc";
-    loaderOverlay.style.display = "flex";
+    loaderOverlay.classList.remove("fade-out");
     appRoot.style.display = "none";
     return;
   }
 
-  // Hide loader
+  // Hide loader smoothly
   document.body.style.overflow = "";
   document.body.style.backgroundColor = "";
-  loaderOverlay.style.display = "none";
+  loaderOverlay.classList.add("fade-out");
   appRoot.style.display = "block";
 
   // RTL/LTR layout handling
