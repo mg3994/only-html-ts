@@ -16,7 +16,7 @@ const localeLoaders: Record<Locales, () => Promise<any>> = {
 export const SUPPORTED_LOCALES = Object.keys(localeLoaders) as Locales[];
 export const DEFAULT_LOCALE = (SUPPORTED_LOCALES.includes("en") ? "en" : SUPPORTED_LOCALES[0]) as Locales;
 
-const RTL_LOCALES = new Set<Locales>(["ar"]);
+const RTL_LOCALES = new Set(["ar", "he", "ur", "fa", "ps", "yi"]);
 
 const getInitialLocale = (): Locales => {
   if (typeof window === "undefined") return DEFAULT_LOCALE;
