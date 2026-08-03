@@ -36,10 +36,6 @@ const priceInput = document.getElementById("price-input") as HTMLInputElement;
 const financialsTrOutput = document.getElementById("financials-tr-output")!;
 const financialsHookOutput = document.getElementById("financials-hook-output")!;
 const dateTrOutput = document.getElementById("date-tr-output")!;
-const dateShortValue = document.getElementById("date-short-value")!;
-const dateMediumValue = document.getElementById("date-medium-value")!;
-const dateLongValue = document.getElementById("date-long-value")!;
-const dateFullValue = document.getElementById("date-full-value")!;
 const fallbackTier3Value = document.getElementById("fallback-tier3-value")!;
 
 // Bind Initial States to Input Fields
@@ -54,6 +50,21 @@ function translateDom() {
     const key = el.getAttribute("data-tr") as TranslationKeys;
     if (key) {
       el.textContent = manager.tr(key);
+    }
+  });
+}
+
+// Automatic DOM date formatting helper using data-format-date attributes
+function formatDom() {
+  const elements = document.querySelectorAll("[data-format-date]");
+  elements.forEach((el) => {
+    const stylePref = el.getAttribute("data-format-date");
+    if (stylePref) {
+      if (stylePref === "short" || stylePref === "medium" || stylePref === "long" || stylePref === "full") {
+        el.textContent = manager.formatDate(todayDate, { dateStyle: stylePref, hour: "2-digit", minute: "2-digit" });
+      } else {
+        el.textContent = manager.formatDate(todayDate);
+      }
     }
   });
 }
@@ -79,6 +90,9 @@ function render() {
 
   // Run automatic DOM scanner translations
   translateDom();
+
+  // Run automatic DOM date formattings
+  formatDom();
 
   // Locale Dropdown value
   localeSelect.value = manager.locale;
@@ -129,10 +143,6 @@ function render() {
 
   // Card 4: DateTime
   dateTrOutput.textContent = manager.tr("date_today", { date: todayDate });
-  dateShortValue.textContent = manager.formatDate(todayDate, { dateStyle: "short", hour: "2-digit", minute: "2-digit" });
-  dateMediumValue.textContent = manager.formatDate(todayDate, { dateStyle: "medium", hour: "2-digit", minute: "2-digit" });
-  dateLongValue.textContent = manager.formatDate(todayDate, { dateStyle: "long", hour: "2-digit", minute: "2-digit" });
-  dateFullValue.textContent = manager.formatDate(todayDate, { dateStyle: "full", hour: "2-digit", minute: "2-digit" });
 
   // Fallback Tier 3
   fallbackTier3Value.textContent = manager.tr("non_existent_key" as any);
