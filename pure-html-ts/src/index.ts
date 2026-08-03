@@ -1,4 +1,5 @@
 import { I18nManager } from "./i18n/i18nManager.ts";
+import { Locales } from "./i18n/types.ts";
 import { getDefaultCurrency } from "./i18n/arbParser.ts";
 
 // Instantiate the manager
@@ -134,7 +135,7 @@ manager.subscribe(render);
 
 // Event Bindings
 localeSelect.addEventListener("change", (e) => {
-  const selected = (e.target as HTMLSelectElement).value;
+  const selected = (e.target as HTMLSelectElement).value as Locales;
   manager.setLocale(selected);
 });
 

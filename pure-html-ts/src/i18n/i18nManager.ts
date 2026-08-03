@@ -1,4 +1,4 @@
-import { Locales, TranslationKeys } from "./types.ts";
+import { Locales, TranslationKeys, I18nManagerType } from "./types.ts";
 import {
   parseArbMessage,
   formatCurrency,
@@ -16,7 +16,7 @@ const localeLoaders: Record<Locales, () => Promise<any>> = {
 export const SUPPORTED_LOCALES = Object.keys(localeLoaders) as Locales[];
 export const DEFAULT_LOCALE = (SUPPORTED_LOCALES.includes("en") ? "en" : SUPPORTED_LOCALES[0]) as Locales;
 
-const RTL_LOCALES = new Set(["ar", "he", "ur", "fa", "ps", "yi"]);
+const RTL_LOCALES = new Set<Locales>(["ar"]);
 
 const getInitialLocale = (): Locales => {
   if (typeof window === "undefined") return DEFAULT_LOCALE;
@@ -39,7 +39,7 @@ const getInitialLocale = (): Locales => {
 
 export type I18nListener = () => void;
 
-export class I18nManager {
+export class I18nManager implements I18nManagerType {
   public locale: Locales = DEFAULT_LOCALE;
   public messages: Record<string, any> = {};
   public fallbackMessages: Record<string, any> = {};
@@ -94,7 +94,7 @@ export class I18nManager {
     }
   }
 
-  public async init() {
+  public async init(): Promise<void> {
     this.loading = true;
     this.notify();
 
@@ -120,8 +120,8 @@ export class I18nManager {
     }
   }
 
-  public async setLocale(newLocale: string) {
-    const validatedLocale = (SUPPORTED_LOCALES.includes(newLocale as Locales) ? newLocale : DEFAULT_LOCALE) as Locales;
+  public async setLocale(newLocale: Locales): Promise<void> {
+    const validatedLocale = SUPPORTED_LOCALES.includes(newLocale) ? newLocale : DEFAULT_LOCALE;
 
     this.loading = true;
     this.notify();
@@ -142,13 +142,13 @@ export class I18nManager {
     }
   }
 
-  public setHour12(preference: boolean) {
+  public setHour12(preference: boolean): void {
     this.hour12 = preference;
     localStorage.setItem("app_hour12", String(preference));
     this.notify();
   }
 
-  public setDateStylePref(style: string) {
+  public setDateStylePref(style: string): void {
     this.dateStylePref = style;
     localStorage.setItem("app_date_style", style);
     this.notify();
