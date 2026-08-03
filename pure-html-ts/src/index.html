@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pure HTML/TS ARB i18n Engine</title>
+  <style>
+    /* Reset & Base styles */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #f0f4f8;
+      transition: all 0.3s ease;
+    }
+
+    /* CSS equivalent of AppStyles.ts */
+    .container {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      color: #1e293b;
+      text-align: start;
+      padding: 24px;
+      transition: all 0.3s ease;
+    }
+
+    .wrapper {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #ffffff;
+      padding: 16px 24px;
+      border-radius: 16px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-title-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-title {
+      fontSize: 1.5rem;
+      font-weight: 700;
+      margin: 0;
+      color: #0f172a;
+    }
+
+    .language-selector-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      direction: ltr;
+    }
+
+    .language-select {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      background-color: #ffffff;
+      font-size: 1rem;
+      font-weight: 500;
+      color: #1e293b;
+      cursor: pointer;
+      outline: none;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+
+    .preferences-card {
+      background-color: #ffffff;
+      border-radius: 16px;
+      padding: 20px 24px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      margin-bottom: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .preferences-title-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .preferences-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .preferences-control-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      direction: ltr;
+    }
+
+    .preferences-label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #64748b;
+    }
+
+    .preferences-button {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      background-color: #ffffff;
+      color: #475569;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s, color 0.2s;
+    }
+
+    .preferences-button.active {
+      background-color: #3b82f6;
+      color: #ffffff;
+    }
+
+    .preferences-select {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      background-color: #ffffff;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #1e293b;
+      cursor: pointer;
+    }
+
+    .info-banner {
+      background-color: #e2e8f0;
+      border-radius: 12px;
+      padding: 12px 20px;
+      font-size: 0.875rem;
+      margin-bottom: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      font-weight: 500;
+      color: #475569;
+      direction: ltr;
+    }
+
+    .info-banner-code {
+      background-color: #ffffff;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 500px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background-color: #ffffff;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin: 0;
+      color: #334155;
+    }
+
+    .card-description {
+      color: #64748b;
+      font-size: 0.95rem;
+      margin: 0 0 20px 0;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .input-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #64748b;
+    }
+
+    .input-text {
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      font-size: 1rem;
+      color: #1e293b;
+      width: 100%;
+    }
+
+    .input-select {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      background-color: #ffffff;
+    }
+
+    .input-number {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+    }
+
+    .output-box {
+      margin-top: 24px;
+      padding: 20px;
+      border-radius: 12px;
+      background-color: #f8fafc;
+    }
+
+    .output-box.blue-border {
+      border-inline-start: 4px solid #3b82f6;
+    }
+
+    .output-box.green-border {
+      border-inline-start: 4px solid #10b981;
+    }
+
+    .output-box.amber-border {
+      border-inline-start: 4px solid #f59e0b;
+    }
+
+    .output-box.purple-border {
+      border-inline-start: 4px solid #8b5cf6;
+    }
+
+    .output-label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .output-value {
+      font-weight: 700;
+    }
+
+    .output-value.blue-text {
+      color: #1e3a8a;
+      font-size: 1.5rem;
+    }
+
+    .output-value.green-text {
+      color: #065f46;
+      font-size: 1.25rem;
+    }
+
+    .output-value.amber-text {
+      color: #b45309;
+      font-size: 1.25rem;
+    }
+
+    .output-value.purple-text {
+      color: #6d28d9;
+      font-size: 1.1rem;
+    }
+
+    .counter-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+      direction: ltr;
+    }
+
+    .counter-button {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      color: white;
+      font-weight: 600;
+      font-size: 1.25rem;
+      cursor: pointer;
+      flex: 1;
+      transition: opacity 0.2s;
+    }
+
+    .counter-button:active {
+      opacity: 0.8;
+    }
+
+    .counter-button.red-btn {
+      background-color: #ef4444;
+      box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+    }
+
+    .counter-button.green-btn {
+      background-color: #22c55e;
+      box-shadow: 0 2px 4px rgba(34, 197, 94, 0.2);
+    }
+
+    .counter-value {
+      font-size: 1.5rem;
+      font-weight: 800;
+      min-width: 60px;
+      text-align: center;
+    }
+
+    .preset-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .preset-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #64748b;
+      width: 100%;
+      margin-bottom: 4px;
+    }
+
+    .preset-button {
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      background-color: #ffffff;
+      color: #475569;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s, color 0.2s;
+    }
+
+    .preset-button.active {
+      background-color: #3b82f6;
+      color: #ffffff;
+    }
+
+    .financials-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      direction: ltr;
+    }
+
+    .financials-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .date-time-styles-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 0.95rem;
+      color: #4c1d95;
+    }
+
+    .date-time-style-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      direction: ltr;
+    }
+
+    .date-time-style-label {
+      font-weight: 700;
+      color: #475569;
+    }
+
+    .date-time-style-value {
+      font-weight: 600;
+    }
+
+    .footer {
+      background-color: #ffffff;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .footer-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .footer-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .footer-description {
+      margin: 0;
+      color: #475569;
+      font-size: 0.9rem;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 4px;
+    }
+
+    .footer-card {
+      padding: 12px 16px;
+      border-radius: 8px;
+    }
+
+    .footer-card-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .footer-card-value {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    /* Smooth loading overlay transition styles */
+    #loader-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: system-ui, -apple-system, sans-serif;
+      color: #4a5568;
+      background-color: #f7fafc;
+      z-index: 999999;
+      transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      opacity: 1;
+      visibility: visible;
+    }
+
+    #loader-overlay.fade-out {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    /* Embedded CSS 3D Origami Folding Styles (exactly from original logo) */
+    #antinna-logo {
+      perspective: 1200px;
+      overflow: visible;
+    }
+
+    #logo-body {
+      transform-style: preserve-3d;
+    }
+
+    .lobe, .facet {
+      transform-box: fill-box;
+      animation-duration: 4.5s;
+      animation-iteration-count: infinite;
+      animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+      animation-direction: alternate;
+    }
+
+    #lobe-top-left {
+      transform-origin: 250px 105px;
+      animation-name: fold-lobe-tl;
+    }
+    #lobe-top-right {
+      transform-origin: 250px 105px;
+      animation-name: fold-lobe-tr;
+    }
+    #lobe-bottom-left {
+      transform-origin: 250px 395px;
+      animation-name: fold-lobe-bl;
+    }
+    #lobe-bottom-right {
+      transform-origin: 250px 395px;
+      animation-name: fold-lobe-br;
+    }
+
+    #shadow-left {
+      transform-origin: 140px 250px;
+      animation-name: fold-wing-left;
+      animation-delay: 0.15s;
+    }
+    #shadow-right {
+      transform-origin: 360px 250px;
+      animation-name: fold-wing-right;
+      animation-delay: 0.15s;
+    }
+
+    #facet-cyan {
+      transform-origin: 250px 250px;
+      animation-name: fold-facet-cyan;
+      animation-delay: 0.3s;
+    }
+    #facet-blue {
+      transform-origin: 250px 250px;
+      animation-name: fold-facet-blue;
+      animation-delay: 0.3s;
+    }
+    #facet-rust {
+      transform-origin: 250px 250px;
+      animation-name: fold-facet-rust;
+      animation-delay: 0.3s;
+    }
+    #facet-orange {
+      transform-origin: 250px 250px;
+      animation-name: fold-facet-orange;
+      animation-delay: 0.3s;
+    }
+
+    @keyframes fold-lobe-tl {
+      0%, 15% { transform: rotate3d(1, -1, 0, 0deg) scale(1); opacity: 1; }
+      55%, 100% { transform: rotate3d(1, -1, 0, 110deg) scale(0.2); opacity: 0.2; }
+    }
+    @keyframes fold-lobe-tr {
+      0%, 15% { transform: rotate3d(1, 1, 0, 0deg) scale(1); opacity: 1; }
+      55%, 100% { transform: rotate3d(1, 1, 0, -110deg) scale(0.2); opacity: 0.2; }
+    }
+    @keyframes fold-lobe-bl {
+      0%, 15% { transform: rotate3d(1, 1, 0, 0deg) scale(1); opacity: 1; }
+      55%, 100% { transform: rotate3d(1, 1, 0, 110deg) scale(0.2); opacity: 0.2; }
+    }
+    @keyframes fold-lobe-br {
+      0%, 15% { transform: rotate3d(1, -1, 0, 0deg) scale(1); opacity: 1; }
+      55%, 100% { transform: rotate3d(1, -1, 0, -110deg) scale(0.2); opacity: 0.2; }
+    }
+
+    @keyframes fold-wing-left {
+      0%, 15% { transform: rotateY(0deg); opacity: 1; }
+      55%, 100% { transform: rotateY(-135deg) scale(0.5); opacity: 0.3; }
+    }
+    @keyframes fold-wing-right {
+      0%, 15% { transform: rotateY(0deg); opacity: 1; }
+      55%, 100% { transform: rotateY(135deg) scale(0.5); opacity: 0.3; }
+    }
+
+    @keyframes fold-facet-cyan {
+      0%, 15% { transform: rotate3d(-1, 1, 0, 0deg) translateZ(0px); }
+      55%, 100% { transform: rotate3d(-1, 1, 0, 85deg) translateZ(-40px); }
+    }
+    @keyframes fold-facet-blue {
+      0%, 15% { transform: rotate3d(1, 1, 0, 0deg) translateZ(0px); }
+      55%, 100% { transform: rotate3d(1, 1, 0, -85deg) translateZ(-40px); }
+    }
+    @keyframes fold-facet-rust {
+      0%, 15% { transform: rotate3d(1, 1, 0, 0deg) translateZ(0px); }
+      55%, 100% { transform: rotate3d(1, 1, 0, 85deg) translateZ(-40px); }
+    }
+    @keyframes fold-facet-orange {
+      0%, 15% { transform: rotate3d(-1, 1, 0, 0deg) translateZ(0px); }
+      55%, 100% { transform: rotate3d(-1, 1, 0, -85deg) translateZ(-40px); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Dynamic full-screen 3D animated Origami loading portal -->
+  <div id="loader-overlay">
+    <div style="width: 200px; height: 200px; margin-bottom: 24px;">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%" id="antinna-logo">
+        <defs>
+          <clipPath id="antinna-smooth-diagonal-boundary">
+            <path d="
+              M 250,105
+              C 210,105 160,45 110,45
+              C 65,45 30,80 30,125
+              C 30,170 30,330 30,375
+              C 30,420 65,455 110,455
+              C 160,455 210,395 250,395
+              C 290,395 340,455 390,455
+              C 435,455 470,420 470,375
+              C 470,330 470,170 470,125
+              C 470,80 435,45 390,45
+              C 340,45 290,105 250,105
+              Z"
+            />
+          </clipPath>
+        </defs>
+        <g id="logo-body" clip-path="url(#antinna-smooth-diagonal-boundary)">
+          <!-- LAYER 1: Four Main Quadrant Background Lobes -->
+          <g id="outer-lobes">
+            <polygon id="lobe-top-left" class="lobe green" points="0,0 250,0 250,105 140,177.5 30,250 0,250" fill="#23A16D" />
+            <polygon id="lobe-top-right" class="lobe indigo" points="250,0 500,0 500,250 470,250 360,177.5 250,105" fill="#5962A0" />
+            <polygon id="lobe-bottom-left" class="lobe red" points="0,250 30,250 140,322.5 250,395 250,500 0,500" fill="#E03E2E" />
+            <polygon id="lobe-bottom-right" class="lobe amber" points="470,250 500,250 500,500 250,500 250,395 360,322.5" fill="#F19E23" />
+          </g>
+          <!-- LAYER 2: Side Shadow Triangles -->
+          <g id="shadow-facets">
+            <polygon id="shadow-left" class="facet shadow" points="30,250 140,177.5 140,322.5" fill="#58538A" />
+            <polygon id="shadow-right" class="facet shadow" points="470,250 360,177.5 360,322.5" fill="#424963" />
+          </g>
+          <!-- LAYER 3: Inner Diamond Facets -->
+          <g id="inner-facets">
+            <polygon id="facet-cyan" class="facet cyan" points="250,105 140,177.5 250,250" fill="#2B90D9" />
+            <polygon id="facet-blue" class="facet blue" points="250,105 250,250 360,177.5" fill="#2472B8" />
+            <polygon id="facet-rust" class="facet rust" points="250,250 140,322.5 250,395" fill="#CF3B27" />
+            <polygon id="facet-orange" class="facet orange" points="250,250 250,395 360,322.5" fill="#E55A1F" />
+          </g>
+          <!-- LAYER 4: Center Core -->
+          <g id="white-core">
+            <polygon id="bowtie-left" class="facet bowtie" points="140,177.5 250,250 140,322.5" fill="none" />
+            <polygon id="bowtie-right" class="facet bowtie" points="360,177.5 250,250 360,322.5" fill="none" />
+          </g>
+        </g>
+      </svg>
+    </div>
+    <div style="font-size: 1.1rem; font-weight: 600; color: #475569; letter-spacing: 0.05em;">
+      Initializing Localization Engine...
+    </div>
+  </div>
+
+  <!-- App root element -->
+  <div id="app-root" class="container" style="display: none;">
+    <div class="wrapper">
+
+      <!-- HEADER -->
+      <header class="header">
+        <div class="header-title-container">
+          <span style="font-size: 2rem;">🌐</span>
+          <h1 id="app-title-text" data-tr="app_title" class="header-title">React ARB i18n Engine</h1>
+        </div>
+        <div class="language-selector-container">
+          <label for="locale-select" class="preferences-label">
+            Language / لغة / भाषा:
+          </label>
+          <select id="locale-select" class="language-select">
+            <option value="en">English (US)</option>
+            <option value="ar">العربية (Arabic)</option>
+            <option value="hi">हिन्दी (Hindi)</option>
+          </select>
+        </div>
+      </header>
+
+      <!-- PREFERENCES CARD -->
+      <div class="preferences-card">
+        <div class="preferences-title-container">
+          <span style="font-size: 1.5rem;">⚙️</span>
+          <h3 class="preferences-title">User Formatting Preferences:</h3>
+        </div>
+        <div class="preferences-control-row">
+          <span class="preferences-label">Time Format:</span>
+          <button id="hour12-true-btn" class="preferences-button">12-Hour (AM/PM)</button>
+          <button id="hour12-false-btn" class="preferences-button">24-Hour</button>
+        </div>
+        <div class="preferences-control-row">
+          <label for="date-style-select" class="preferences-label">Date Format:</label>
+          <select id="date-style-select" class="preferences-select">
+            <option value="DD/MM/YYYY">DD/MM/YYYY (Slashes)</option>
+            <option value="MM/DD/YYYY">MM/DD/YYYY (Slashes)</option>
+            <option value="YYYY/MM/DD">YYYY/MM/DD (Slashes)</option>
+            <option value="medium">Medium Word-based</option>
+            <option value="long">Long Word-based</option>
+            <option value="full">Full Word-based (Day Name)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- INFO BANNER -->
+      <div class="info-banner">
+        <div>
+          <strong>Active Locale:</strong> <code id="info-locale" class="info-banner-code">en</code>
+        </div>
+        <div>
+          <strong>HTML Dir:</strong> <code id="info-dir" class="info-banner-code">ltr (LTR)</code>
+        </div>
+        <div>
+          <strong>HTML Lang:</strong> <code id="info-lang" class="info-banner-code">en</code>
+        </div>
+      </div>
+
+      <!-- DASHBOARD GRID -->
+      <div class="grid">
+
+        <!-- CARD 1: Interpolation -->
+        <section class="card">
+          <div>
+            <div class="card-header">
+              <span style="font-size: 1.25rem;">👋</span>
+              <h2 class="card-title">Interpolation & Variables</h2>
+            </div>
+            <p class="card-description">
+              Type a name below to see the ARB template <code>"hello": "Hello &#123;name&#125;!"</code> update in real-time.
+            </p>
+            <div class="input-group">
+              <label for="name-input" class="input-label">Enter Name:</label>
+              <input type="text" id="name-input" class="input-text" value="John Doe" />
+            </div>
+          </div>
+          <div class="output-box blue-border">
+            <div class="output-label">Interpolated Output:</div>
+            <div id="interpolation-output" data-tr="hello" data-tr-param-name="John Doe" class="output-value blue-text">Hello John Doe!</div>
+          </div>
+        </section>
+
+        <!-- CARD 2: Pluralization -->
+        <section class="card">
+          <div>
+            <div class="card-header">
+              <span style="font-size: 1.25rem;">🔢</span>
+              <h2 class="card-title">ICU Pluralization System</h2>
+            </div>
+            <p class="card-description">
+              Plural rules differ significantly by language. Arabic supports 6 distinct forms, while Hindi and English support 2. Click options to see plural switching!
+            </p>
+            <div class="counter-row">
+              <button id="counter-dec-btn" class="counter-button red-btn">-</button>
+              <div id="counter-value-text" class="counter-value">1</div>
+              <button id="counter-inc-btn" class="counter-button green-btn">+</button>
+            </div>
+            <div class="preset-row">
+              <span class="preset-label">Quick presets:</span>
+              <button class="preset-button" data-val="0">0</button>
+              <button class="preset-button active" data-val="1">1</button>
+              <button class="preset-button" data-val="2">2</button>
+              <button class="preset-button" data-val="5">5</button>
+              <button class="preset-button" data-val="11">11</button>
+              <button class="preset-button" data-val="100">100</button>
+            </div>
+          </div>
+          <div class="output-box green-border">
+            <div class="output-label">Plural Output:</div>
+            <div id="plural-output" data-tr="items_count" data-tr-param-count="1" class="output-value green-text">You have 1 item</div>
+            <div style="font-size: 0.75rem; color: #64748b; margin-top: 8px; font-style: italic; direction: ltr;">
+              Intl Plural Category for <span id="plural-category-count">1</span>: <strong id="plural-category-name">one</strong>
+            </div>
+          </div>
+        </section>
+
+        <!-- CARD 3: Financials -->
+        <section class="card">
+          <div>
+            <div class="card-header">
+              <span style="font-size: 1.25rem;">💵</span>
+              <h2 class="card-title">Currency & Number Formatting</h2>
+            </div>
+            <p class="card-description">
+              Formats monetary values in according to the active language standards. Notice localized currency symbols, digit symbols, and placement.
+            </p>
+            <div class="financials-row">
+              <div class="financials-col">
+                <label for="currency-select" class="preset-label">Select Currency:</label>
+                <select id="currency-select" class="input-select">
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                  <option value="SAR">SAR (ر.س)</option>
+                  <option value="INR">INR (₹)</option>
+                </select>
+              </div>
+              <div class="financials-col">
+                <label for="price-input" class="preset-label">Input Amount:</label>
+                <input type="number" id="price-input" class="input-number" value="1499.99" step="50" />
+              </div>
+            </div>
+          </div>
+          <div class="output-box amber-border">
+            <div class="output-label">Formatted Financials:</div>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              <div style="display: flex; flex-direction: column; gap: 4px;">
+                <span style="font-size: 0.8rem; color: #64748b;">tr() format currency placeholder:</span>
+                <div id="financials-tr-output" data-tr="price_tag" data-tr-param-amount="1499.99" data-tr-param-currency-code="USD" class="output-value amber-text">Total price: $1,499.99</div>
+              </div>
+              <div style="border-top: 1px solid #e2e8f0; padding-top: 8px; display: flex; flex-direction: column; gap: 4px;">
+                <span style="font-size: 0.8rem; color: #64748b;">hook formatCurrency():</span>
+                <div id="financials-hook-output" class="output-value amber-text">$1,499.99</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- CARD 4: DateTime -->
+        <section class="card">
+          <div>
+            <div class="card-header">
+              <span style="font-size: 1.25rem;">📅</span>
+              <h2 class="card-title">DateTime Localizers</h2>
+            </div>
+            <p class="card-description">
+              Showcases localized Date and Time formatting. Observe how days and months are fully translated in Arabic and Hindi.
+            </p>
+          </div>
+          <div class="output-box purple-border">
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <div class="output-label">tr() with auto-formatted Date param:</div>
+              <div id="date-tr-output" data-tr="date_today" class="output-value purple-text">Today is August 2, 2026</div>
+            </div>
+            <div style="border-top: 1px solid #e2e8f0; padding-top: 12px; margin-top: 12px;">
+              <div class="output-label">hook formatDate() styles:</div>
+              <div class="date-time-styles-list">
+                <div class="date-time-style-row">
+                  <span class="date-time-style-label">Short:</span>
+                  <span data-format-date="short" class="date-time-style-value">08/02/2026</span>
+                </div>
+                <div class="date-time-style-row">
+                  <span class="date-time-style-label">Medium:</span>
+                  <span data-format-date="medium" class="date-time-style-value">Aug 2, 2026</span>
+                </div>
+                <div class="date-time-style-row">
+                  <span class="date-time-style-label">Long:</span>
+                  <span data-format-date="long" class="date-time-style-value">August 2, 2026</span>
+                </div>
+                <div class="date-time-style-row">
+                  <span class="date-time-style-label">Full:</span>
+                  <span data-format-date="full" class="date-time-style-value">Sunday, August 2, 2026</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- FOOTER -->
+      <footer class="footer">
+        <div class="footer-header">
+          <span style="font-size: 1.2rem;">🛡️</span>
+          <h3 class="footer-title">Fallback Capability & Resiliency</h3>
+        </div>
+        <p class="footer-description">
+          The system employs a strict tier-based fallback sequence:
+          <code>Active Locale translation &rarr; Fallback (English) translation &rarr; Verbatim Key Name</code>.
+        </p>
+        <div class="footer-grid">
+          <div class="footer-card" style="background-color: #fffbeb; border: 1px solid #fef3c7;">
+            <div class="footer-card-label" style="color: #b45309;">
+              Tier 2: Key Missing in Active, Fallback to English (<code>"fallback_demo"</code>):
+            </div>
+            <div id="fallback-tier2-value" data-tr="fallback_demo" class="footer-card-value">This message is a fallback from English!</div>
+          </div>
+          <div class="footer-card" style="background-color: #fef2f2; border: 1px solid #fee2e2;">
+            <div class="footer-card-label" style="color: #b91c1c;">
+              Tier 3: Key Missing in Both, Verbatim Raw Key (<code>"non_existent_key"</code>):
+            </div>
+            <div id="fallback-tier3-value" class="footer-card-value">non_existent_key</div>
+          </div>
+        </div>
+      </footer>
+
+    </div>
+  </div>
+
+  <script type="module" src="index.js"></script>
+</body>
+</html>
