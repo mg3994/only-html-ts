@@ -1,5 +1,5 @@
 import { I18nManager } from "./i18n/i18nManager.ts";
-import { Locales } from "./i18n/types.ts";
+import { Locales, TranslationKeys } from "./i18n/types.ts";
 import { getDefaultCurrency } from "./i18n/arbParser.ts";
 
 // Instantiate the manager
@@ -40,14 +40,23 @@ const dateShortValue = document.getElementById("date-short-value")!;
 const dateMediumValue = document.getElementById("date-medium-value")!;
 const dateLongValue = document.getElementById("date-long-value")!;
 const dateFullValue = document.getElementById("date-full-value")!;
-const fallbackTier2Value = document.getElementById("fallback-tier2-value")!;
 const fallbackTier3Value = document.getElementById("fallback-tier3-value")!;
-const appTitleText = document.getElementById("app-title-text")!;
 
 // Bind Initial States to Input Fields
 nameInput.value = nameState;
 priceInput.value = String(priceAmountState);
 currencySelect.value = currencyCodeState;
+
+// Automatic DOM translation helper using data-tr attributes
+function translateDom() {
+  const elements = document.querySelectorAll("[data-tr]");
+  elements.forEach((el) => {
+    const key = el.getAttribute("data-tr") as TranslationKeys;
+    if (key) {
+      el.textContent = manager.tr(key);
+    }
+  });
+}
 
 // Re-render function that binds state into DOM elements
 function render() {
@@ -68,8 +77,8 @@ function render() {
   // RTL/LTR layout handling
   appRoot.style.direction = manager.isRTL ? "rtl" : "ltr";
 
-  // Translate App Title
-  appTitleText.textContent = manager.tr("app_title");
+  // Run automatic DOM scanner translations
+  translateDom();
 
   // Locale Dropdown value
   localeSelect.value = manager.locale;
@@ -125,8 +134,7 @@ function render() {
   dateLongValue.textContent = manager.formatDate(todayDate, { dateStyle: "long", hour: "2-digit", minute: "2-digit" });
   dateFullValue.textContent = manager.formatDate(todayDate, { dateStyle: "full", hour: "2-digit", minute: "2-digit" });
 
-  // Fallbacks
-  fallbackTier2Value.textContent = manager.tr("fallback_demo");
+  // Fallback Tier 3
   fallbackTier3Value.textContent = manager.tr("non_existent_key" as any);
 }
 
