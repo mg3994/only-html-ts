@@ -3,6 +3,8 @@
  * Single Responsibility: Format parameters and primitive values for specific locales.
  */
 
+const RTL_LOCALES = new Set(["ar", "he", "ur", "fa", "ps", "yi"]);
+
 // Globally resolved and exported timezone constant to be accessed by other features in the future.
 export const currentTimeZone: string = (() => {
   try {
@@ -242,7 +244,7 @@ export function formatDateWithPreferences(
     // Append hour/minute localized pieces if necessary
     if (partMap.hour && partMap.minute) {
       const timeStr = `${partMap.hour}:${partMap.minute}${partMap.dayPeriod ? " " + partMap.dayPeriod : ""}`;
-      return locale === "ar" ? `${timeStr} ، ${dateStr}` : `${dateStr}, ${timeStr}`;
+      return RTL_LOCALES.has(locale) ? `${timeStr} ، ${dateStr}` : `${dateStr}, ${timeStr}`;
     }
 
     return dateStr;

@@ -49,7 +49,41 @@ function translateDom() {
   elements.forEach((el) => {
     const key = el.getAttribute("data-tr") as TranslationKeys;
     if (key) {
-      el.textContent = manager.tr(key);
+      const params: Record<string, any> = {};
+
+      // 1. Support data-tr-params JSON object attribute
+      const paramsAttr = el.getAttribute("data-tr-params");
+      if (paramsAttr) {
+        try {
+          Object.assign(params, JSON.parse(paramsAttr));
+        } catch (e) {
+          console.error("Error parsing data-tr-params JSON on element:", el, e);
+        }
+      }
+
+      // 2. Support individual data-tr-param-<name> attributes
+      Array.from(el.attributes).forEach((attr) => {
+        if (attr.name.startsWith("data-tr-param-")) {
+          const kebabParamName = attr.name.slice("data-tr-param-".length);
+          // Convert kebab-case (e.g., currency-code) to camelCase (e.g., currencyCode)
+          const camelParamName = kebabParamName.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+          const rawValue = attr.value;
+          // Coerce numbers if possible
+          const numValue = Number(rawValue);
+          if (!isNaN(numValue) && rawValue.trim() !== "") {
+            params[camelParamName] = numValue;
+          } else {
+            params[camelParamName] = rawValue;
+          }
+        }
+      });
+
+      // 3. Support element property trParams (e.g. for non-serializable Dates or other values)
+      if ((el as any).trParams) {
+        Object.assign(params, (el as any).trParams);
+      }
+
+      el.textContent = manager.tr(key, params);
     }
   });
 }
@@ -88,12 +122,6 @@ function render() {
   // RTL/LTR layout handling
   appRoot.style.direction = manager.isRTL ? "rtl" : "ltr";
 
-  // Run automatic DOM scanner translations
-  translateDom();
-
-  // Run automatic DOM date formattings
-  formatDom();
-
   // Locale Dropdown value
   localeSelect.value = manager.locale;
 
@@ -114,12 +142,12 @@ function render() {
   infoDir.textContent = manager.isRTL ? "rtl (RTL)" : "ltr (LTR)";
   infoLang.textContent = manager.locale;
 
-  // Card 1: Interpolation
-  interpolationOutput.textContent = manager.tr("hello", { name: nameState });
+  // Card 1: Interpolation (Declarative via attributes)
+  interpolationOutput.setAttribute("data-tr-param-name", nameState);
 
-  // Card 2: Pluralization
+  // Card 2: Pluralization (Declarative via attributes)
   counterValueText.textContent = manager.formatNumber(countState);
-  pluralOutput.textContent = manager.tr("items_count", { count: countState });
+  pluralOutput.setAttribute("data-tr-param-count", String(countState));
   pluralCategoryCount.textContent = String(countState);
   try {
     pluralCategoryName.textContent = new Intl.PluralRules(manager.locale).select(countState);
@@ -137,15 +165,22 @@ function render() {
     }
   });
 
-  // Card 3: Financials
-  financialsTrOutput.textContent = manager.tr("price_tag", { amount: priceAmountState, currencyCode: currencyCodeState });
+  // Card 3: Financials (Declarative via attributes)
+  financialsTrOutput.setAttribute("data-tr-param-amount", String(priceAmountState));
+  financialsTrOutput.setAttribute("data-tr-param-currency-code", currencyCodeState);
   financialsHookOutput.textContent = manager.formatCurrency(priceAmountState, currencyCodeState);
 
-  // Card 4: DateTime
-  dateTrOutput.textContent = manager.tr("date_today", { date: todayDate });
+  // Card 4: DateTime (Declarative via custom JS object property binding)
+  (dateTrOutput as any).trParams = { date: todayDate };
 
   // Fallback Tier 3
   fallbackTier3Value.textContent = manager.tr("non_existent_key" as any);
+
+  // Run automatic DOM scanner translations to process all data-tr with their dynamic params
+  translateDom();
+
+  // Run automatic DOM date formattings
+  formatDom();
 }
 
 // Subscribe rendering callback
